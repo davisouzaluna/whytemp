@@ -1,0 +1,32 @@
+services:
+  emqx:
+    image: emqx/emqx-enterprise:5.8.0
+    container_name: emqx
+    ports:
+      - "1883:1883"     # Porta padrão MQTT
+      - "8083:8083"     # Porta para WebSocket (MQTT)
+      - "8084:8084"     # Porta para WebSocket (MQTT com SSL)
+      - "8883:8883"     # Porta para MQTT sobre TLS
+      - "18083:18083"   # Porta para painel de administração
+      - "14567:14567/udp" # Porta para MQTT sobre QUIC
+    volumes:
+      - emqx_data:/opt/emqx/data
+      - emqx_logs:/opt/emqx/logs
+      - ./certs:/etc/certs
+    environment:
+      - EMQX_LISTENERS__QUIC__DEFAULT__ENABLED=true
+      - EMQX_LISTENERS__QUIC__DEFAULT__keyfile=/etc/certs/key.pem
+      - EMQX_LISTENERS__QUIC__DEFAULT__certfile=/etc/certs/cert.pem
+    networks:
+      - whytemp
+    restart: always
+
+volumes:
+  emqx_data:
+    driver: local
+  emqx_logs:
+    driver: local
+
+networks:
+  whytemp:
+    driver: bridge
