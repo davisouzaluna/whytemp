@@ -1,0 +1,10 @@
+O dispositivo IoT é um NodeMCU esp8266.
+
+
+- O sensor de temperatura é um DHT11
+
+Pinagem:
+
+- A alimentação é 3.3V
+- Ainda não coloquei nenhum resistor
+- O pino de dados é o 2

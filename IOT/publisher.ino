@@ -1,4 +1,5 @@
-#define DHTPIN 2 
+#define DHTPIN D2        // D2 é GPIO 4 no ESP8266 ou GPIO 2 no ESP32)
+#define DHTTYPE 11     
 
 // Variáveis para armazenar valores máximos e mínimos
 float maxTemperature = -100;
@@ -26,19 +27,18 @@ void loop() {
   while (digitalRead(DHTPIN) == HIGH);
   
   // Lê os dados do sensor
-  int data[5];
+  int data[5] = {0}; // Inicializa o array com zeros
   for (int i = 0; i < 5; i++) {
-    data[i] = 0;
     for (int j = 0; j < 8; j++) {
-      while (digitalRead(DHTPIN) == LOW);
+      while (digitalRead(DHTPIN) == LOW); // Espera para o sinal subir
       unsigned long startTime = micros();
-      while (digitalRead(DHTPIN) == HIGH);
+      while (digitalRead(DHTPIN) == HIGH); // Espera para o sinal cair
       unsigned long duration = micros() - startTime;
       data[i] |= (duration > 40) << (7 - j);
     }
   }
   
-  // Verifica a validade dos dados(o 5° byte é o byte de verificação)
+  // Verifica a validade dos dados (o 5° byte é o byte de verificação)
   int checksum = data[0] + data[1] + data[2] + data[3];
   if (checksum == data[4]) {
     float humidity = data[0] + data[1] / 10.0;
@@ -56,7 +56,7 @@ void loop() {
     }
     if (humidity < minHumidity) {
       minHumidity = humidity;
-    }
+    } 
     // Mostra os valores
     Serial.print("Temperatura: ");
     Serial.print(temperature);
@@ -78,5 +78,5 @@ void loop() {
     Serial.println("Erro na leitura dos dados.");
   }
   
-  delay(2000); // Aguarda 2 segundos antes de fazer a próxima leitura
+  delay(1000); // Aguarda 2 segundos antes de fazer a próxima leitura
 }
