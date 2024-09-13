@@ -1,50 +1,28 @@
-import json
-import time
 import paho.mqtt.client as mqtt
-from flask import Flask, Response
 
-app = Flask(__name__)
+# Configurações do broker MQTT
+broker = 'broker.emqx.io'
+port = 1883
+topic = [("sensor/temperature",0),("sensor/humidity",0)] #a variável topic é uma lista de tuplas, onde cada tupla é um tópico e um QoS associado
+client_id = f'device-humidity_whytemp'# O ID deve ser único. Futuramente o MAC do dispositivo pode ser o ID dele
 
-# Configurações MQTT
-MQTT_BROKER_HOST = 'broker.hivemq.com'
-MQTT_BROKER_PORT = 1883
-MQTT_TOPIC = 'test2'
+# Callback de conexão
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print("Conectado ao broker MQTT com sucesso!")
+        client.subscribe(topic)
+    else:
+        print(f"Falha na conexão, código {rc}")
 
-# Armazenamento das mensagens MQTT
-mqtt_messages = []
+# Callback da mensagem recebida
+def on_message(client, userdata, msg):
+    print(f"Mensagem recebida no tópico '{msg.topic}': {msg.payload.decode()}")
 
-# Função para tratar mensagens MQTT recebidas
-def on_message(client, userdata, message):
-    payload = message.payload.decode('utf-8')
-    mqtt_messages.append(payload)
+client = mqtt.Client(client_id)
+client.on_connect = on_connect
+client.on_message = on_message
 
+client.connect(broker, port)
 
-# Configurar cliente MQTT
-mqtt_client = mqtt.Client()
-mqtt_client.on_message = on_message
-mqtt_client.connect(MQTT_BROKER_HOST, MQTT_BROKER_PORT, keepalive=60)
-mqtt_client.subscribe(MQTT_TOPIC)
-mqtt_client.loop_start()
-
-@app.after_request
-def add_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-    return response
-
-
-def event_generator():
-    while True:
-        if mqtt_messages:
-            data = mqtt_messages.pop(0)
-            yield f"data: {data}\n\n"
-        else:
-            pass
-
-@app.route('/')
-def events():
-    return Response(event_generator(), content_type='text/event-stream')
-
-if __name__ == '__main__':
-    app.run(debug=True)
+#Loop principal
+client.loop_forever()

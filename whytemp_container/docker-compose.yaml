@@ -21,10 +21,28 @@ services:
       - whytemp
     restart: always
 
+  mysql:
+    image: mysql:8.0 # Versão do MySQL
+    container_name: mysql
+    ports:
+      - "3309:3306" # 
+    environment:
+      MYSQL_ROOT_PASSWORD: root # Defina a senha root
+      MYSQL_DATABASE: whytemp # Nome do banco de dados
+      MYSQL_USER: user # Nome do usuário
+      MYSQL_PASSWORD: pass # Senha do usuário
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - whytemp
+    restart: always
+
 volumes:
   emqx_data:
     driver: local
   emqx_logs:
+    driver: local
+  mysql_data:
     driver: local
 
 networks:
