@@ -1,27 +1,44 @@
-import paho.mqtt.client as mqtt
+import datetime
+from mqttapi import MQTTCommunicator, MySQLManipulator
+import signal
+import sys
 
-# Configurações do broker MQTT
-broker = '127.0.0.1'
-port = 1883
-topic = [("sensor/temperature",0),("sensor/humidity",0)] #a variável topic é uma lista de tuplas, onde cada tupla é um tópico e um QoS associado
-client_id = f'device-humidity_whytemp'# O ID deve ser único. Futuramente o MAC do dispositivo pode ser o ID dele
+#altere esses parametros:
+mqtt_communicator = MQTTCommunicator(host='localhost', port=1883, keepalive=60, bind_address='')
+bd_manipulator = MySQLManipulator(host='localhost', user='root', password='root', database='whytemp',port=3309)
 
-# Callback de conexão
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
-        print("Conectado ao broker MQTT com sucesso!")
-        client.subscribe(topic)
-    else:
-        print(f"Falha na conexão, código {rc}")
+mqtt_communicator.connect()
+bd_manipulator.connect()
 
-# Callback da mensagem recebida
-def on_message(client, userdata, msg):
-    print(f"Mensagem recebida no tópico '{msg.topic}': {msg.payload.decode()}")
+topic_qos_tuples = [
+    ('sensor/temperature', 0),
+    ('sensor/humidity', 0),
+]
 
-client = mqtt.Client(client_id)
-client.on_connect = on_connect
-client.on_message = on_message
+mqtt_communicator.subscribe_to_topics(topic_qos_tuples)
 
-client.connect(broker, port)
-#Loop principal
-client.loop_forever()
+def signal_handler(signal, frame):
+    print("\nPrograma encerrado.\n")
+    bd_manipulator.disconnect()
+    mqtt_communicator.disconnect()
+    sys.exit(0)
+signal.signal(signal.SIGINT, signal_handler)
+
+def handle_message(client, userdata, msg):
+        mensagem = msg.payload.decode()#É feito isso pois a mensagem vem em bytes, entao ao invés de uma mensagem de: b'30 nós teremos: 30
+        topico = str(msg.topic)
+        qos = msg.qos
+        data_hora_medicao= datetime.datetime.now(datetime.timezone.utc)
+        print("message: "+mensagem)
+        print("topic: "+topico)
+        
+        #caso queira que uma tabela já existente seja usada ou uma nova seja criada, altere o parametro 'tabela' do método
+        #insert_data
+        bd_manipulator.insert_data(mensagem, topico, qos, data_hora_medicao,tabela ='dados')
+        #A ordem é: A mensagem(medição do sensor), o tópico(relacionado ao protocolo mqtt), o qos(relacionado ao protocolo mqtt)
+        #e a data(nao obrigatorio, mas caso não for colocado, então irá aparecer em formato UTC)
+
+while True:
+    mqtt_communicator.client.loop_start()
+    mqtt_communicator.client.on_message = handle_message
+    
