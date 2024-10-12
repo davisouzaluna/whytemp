@@ -1,0 +1,18 @@
+{
+    "name": "whytemp_server",
+    "version": "0.1.0",
+    "author": "Davi Souza de Luna <Sdavi738@gmail.com>",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/davisouzaluna/whytemp.git"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/davisouzaluna/whytemp/issues"
+    },
+    "homepage": "https://github.com/davisouzaluna/whytemp",
+    "dependencies": {
+        "dotenv": "^16.4.5",
+        "mysql2": "^3.11.3"
+    }
+}

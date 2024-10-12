@@ -22,15 +22,15 @@ services:
     restart: always
 
   mysql:
-    image: mysql:8.0 # Versão do MySQL
+    image: mysql:8.4.2 # Versão estavel do MySQL. Consultar: https://hub.docker.com/_/mysql
     container_name: mysql
     ports:
-      - "3309:3306" # 
+      - "3309:3306" 
     environment:
-      MYSQL_ROOT_PASSWORD: root # Defina a senha root
-      MYSQL_DATABASE: whytemp # Nome do banco de dados
-      MYSQL_USER: user # Nome do usuário
-      MYSQL_PASSWORD: pass # Senha do usuário
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: whytemp 
+      MYSQL_USER: user 
+      MYSQL_PASSWORD: pass 
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
